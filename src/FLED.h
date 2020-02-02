@@ -36,6 +36,7 @@ using std::string;
 using std::cout;
 using std::endl;
 
+
 class FLED
 {
 public:
@@ -64,9 +65,37 @@ public:// Draw Data and Write Information Functions
 	void writeFLED(string filepath, string filename, double useTime);
 	void showDetailBreakdown(cv::Vec<double, 10> &detDetailTime, int needDisplay = 1);
 	void showDatasetBreakdown();
-public: //自适应补充部分
-	void calCannyThreshold(cv::Mat &ImgG, int &low, int &high);
+public: 
+	void calCannyThreshold(cv::Mat &ImgG, int &low, int &high); // Adaptive Canny thresholds
 
+
+public: // The public functions that used for Python.
+	int run_FLED(unsigned char* _img_G, int irows, int icols)
+	{
+		Mat Img_G(irows, icols, CV_8UC1, _img_G);
+		run_FLED(Img_G);
+		return detEllipses.size();
+	}
+	void UpdateResults(float* _data)
+	{
+		for (int i = 0; i < detEllipses.size(); i++)
+		{
+			_data[i * 6 + 0] = detEllipses[i].center.x;
+			_data[i * 6 + 1] = detEllipses[i].center.y;
+			_data[i * 6 + 2] = detEllipses[i].size.width;
+			_data[i * 6 + 3] = detEllipses[i].size.height;
+			_data[i * 6 + 4] = detEllipses[i].angle;
+			_data[i * 6 + 5] = detEllipseScore[i];
+		}
+	}
+	void drawAAMED(unsigned char* _img_G, int irows, int icols, cv::Vec3b *_outImg)
+	{
+		Mat img_G = Mat(irows, icols, CV_8UC1, _img_G).clone();
+		Mat img_O = Mat(irows, icols, CV_8UC3, _outImg);
+		cvtColor(img_G, img_G, cv::COLOR_GRAY2BGR);
+		drawFLED(img_G, 0);
+		cv::waitKey(0);
+	}
 protected:
 	void findContours(uchar *_edge);
 	void BoldEdge(uchar *_edge, const vector< vector<Point> > &edge_Contours);
@@ -90,15 +119,15 @@ protected:
 	vector< vector<Point> > WeakArcs;
 	void SortArcs(vector<vector<Point>> &detArcs);
 
-private: //参数列表
-	double _T_dp;
+private: //The list of parameters.
+	double _T_dp; // Useless
 	double _theta_fsa;
 	double _length_fsa;
 	double _T_val;
-	double _T_gradnum;
-	// 自适应参数列表
-	double _T_edge_num; //与输入图像无关
-	double _T_min_minor; //与输入图像无关
+	double _T_gradnum; // Useless
+	// The list of adaptive parameters
+	double _T_edge_num; //Independent of image size
+	double _T_min_minor; //Independent of image size
 
 private:
 	double sum_time;
@@ -130,8 +159,7 @@ private:
 	void fitEllipse(double *data, double &error, cv::RotatedRect &res);
 	void ElliFit(double *data, double &error, cv::RotatedRect &res);
 
-	// 邻接矩阵存储提取部分
-#pragma region 邻接矩阵部分
+	// The part of arc adjacency matrix (AAM)
 	GroupPart<char> LinkMatrix;
 	struct linkArc
 	{
@@ -158,12 +186,12 @@ private:
 	};
 	GroupPart<linkArc> lA;
 	void getlinkArcs(const char *_linkMatrix, int arc_num);
-#pragma endregion
 
-#pragma region 根据邻接矩阵提取每个弧段的弧段组合
 
+
+	// Extracting the arc combinations according to the adjacency matrix 
 	vector<int> temp;
-	std::vector<unsigned char> _arc_grouped_label; // 1被组合，0没有被组合
+	std::vector<unsigned char> _arc_grouped_label; // If the value of ith is 1, the ith arc has been combined in an arc combination
 	cv::Vec<double, MAT_NUMBER> fitArcTemp;
 	//根据当前根搜索点提取出的正反两组弧段;用于标记每个弧段的连接情况，[0]保存的是不与哪些弧段相连[1]保存的是对应的弧段
 	vector< vector<int> > search_group[2];
@@ -191,17 +219,14 @@ private:
 	void PosteriorArcsSearch2(int point_idx); //Step: Search Linking
 	void AnteriorArcsSearch2(int point_idx);  //Step: Search Linked
 
-#pragma endregion
 
-#pragma region 弧段拟合部分
 	bool FittingConstraint(double *_linkingMat, double *_linkedMat, cv::RotatedRect &fitres);
 	bool Validation(cv::RotatedRect &res, double *detScore);
 	bool fastValidation(cv::RotatedRect &res, double *detScore);
 	bool fastValidation2(cv::RotatedRect &res, double *detScore);
 	double vld_use_time;
-#pragma endregion
 
-#pragma region 验证拟合结果部分
+
 	//Validation Data
 	float vldBaseData[VALIDATION_NUMBER][2];
 	//double vldBaseDataX[VALIDATION_NUMBER], vldBaseDataY[VALIDATION_NUMBER], sample_x[VALIDATION_NUMBER], sample_y[VALIDATION_NUMBER], grad_x[VALIDATION_NUMBER], grad_y[VALIDATION_NUMBER], sample_weight[VALIDATION_NUMBER];
@@ -209,9 +234,9 @@ private:
 
 
 	static void ClusterEllipses(std::vector<cv::RotatedRect> &detElps, vector<double> &detEllipseScore);
-#pragma endregion
 
-private: //新版优化版本
+
+private:
 
 	cv::flann::LinearIndexParams  indexParams;
 	cv::flann::Index kdTree_Arcs;
@@ -222,25 +247,7 @@ protected:
 	char Group4FAnB1_FBmA1(Point vecFet[8], const Point * const *l1, const Point * const *l2, const ArcSearchRegion * const asri, const ArcSearchRegion * const asrk) const
 	{
 		int linkval[2];
-		//if (!asri->isInSearchRegion(l2[0]))
-		//	return -1;
-		//if (!asri->isInSearchRegion(l2[3]))
-		//	return -1;
-		//// 反向验证
-		//if (!asrk->isInSearchRegion(l1[0]))
-		//	return -1;
-		//if (!asrk->isInSearchRegion(l1[3]))
-		//	return -1;
 
-		//if (!(asri->isInSearchRegion(&asrk->A_1)))
-		//	return -1;
-		//if (!(asrk->isInSearchRegion(&asri->A__1)))
-		//	return -1;
-
-		//if (!(asrk->isInSearchRegion(&asri->A_1)))
-		//	return -1;
-		//if (!(asri->isInSearchRegion(&asrk->A__1)))
-		//	return -1;
 
 
 		if (!RegionConstraint(asri, asrk))
@@ -522,3 +529,5 @@ protected:
 #endif
 
 };
+
+typedef FLED AAMED;

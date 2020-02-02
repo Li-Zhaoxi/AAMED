@@ -216,7 +216,8 @@ void FLED::drawFLED(Mat ImgG,string savepath)
 		cout << "The " << i << "th ellipse's score is :" << detEllipseScore[i] << endl;
 	}
 	cv::imshow("Ellipses", Img_T);
-	imwrite(savepath, Img_T);
+	if(savepath.length() > 0)
+		imwrite(savepath, Img_T);
 }
 
 void FLED::writeFLED(string filepath, string filename, double useTime)
