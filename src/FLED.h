@@ -53,18 +53,15 @@ public:
 	void run_AAMED_WithoutCanny(Mat Img_G);
 public:// Draw Data and Write Information Functions
 	void drawEdgeContours();
-	void writeEdgeContours();//We provide matlab codes to open these data 
 	void drawDPContours();
-	void writeDPContours();
 	void drawFSA_ArcContours();
-	void writeFSA_ArcContours();
-	void writeLinkMatrix();
 	void drawEllipses();
 	void drawFLED(Mat ImgC, double use_time = -1);
 	void drawFLED(Mat ImgG, string savepath);
 	void writeFLED(string filepath, string filename, double useTime);
 	void showDetailBreakdown(cv::Vec<double, 10> &detDetailTime, int needDisplay = 1);
 	void showDatasetBreakdown();
+	void writeDetailData();
 public: 
 	void calCannyThreshold(cv::Mat &ImgG, int &low, int &high); // Adaptive Canny thresholds
 
@@ -100,8 +97,6 @@ protected:
 	void findContours(uchar *_edge);
 	void BoldEdge(uchar *_edge, const vector< vector<Point> > &edge_Contours);
 	void FSA_Segment(vector<Point> &dpContour);
-	void FSA_Segment_Approx(vector<Point> &dpContour);
-	static double distPt2Elp(cv::Point &pt, cv::RotatedRect &elp);
 
 
 	void Arcs_Grouping(vector< vector<Point> > &fsaarcs);
@@ -193,25 +188,25 @@ private:
 	vector<int> temp;
 	std::vector<unsigned char> _arc_grouped_label; // If the value of ith is 1, the ith arc has been combined in an arc combination
 	cv::Vec<double, MAT_NUMBER> fitArcTemp;
-	//根据当前根搜索点提取出的正反两组弧段;用于标记每个弧段的连接情况，[0]保存的是不与哪些弧段相连[1]保存的是对应的弧段
+	
 	vector< vector<int> > search_group[2];
 	vector < cv::Vec<double, MAT_NUMBER> > search_arcMats[2];
 	void init_fitmat(double *basic_fitmat, double *init_fitmat, int num);
-	void push_fitmat(double *basic_fitmat, double *add_fitmat, int num); //更新当前弧段拟合矩阵
+	void push_fitmat(double *basic_fitmat, double *add_fitmat, int num); 
 	void pop_fitmat(double *basic_fitmat, double *minus_fitmat, int num);
 
 
-	GroupPart<unsigned char> visited;//是否被访问
+	GroupPart<unsigned char> visited;// The ith value represent whether ith arc is visited or not.
 	GroupPart<unsigned char> searched;
 
 	vector< cv::Vec<double, MAT_NUMBER> > ArcFitMat;
 	void GetArcMat(vector< cv::Vec<double, MAT_NUMBER> > &arcfitmat, vector< vector<Point> > &fsa_arc);
 
-	GroupPart<SORTDATA> fitComb_LR; //左右弧段组合
+	GroupPart<SORTDATA> fitComb_LR; 
 	typedef GroupPart<SORTDATA> GPSD;
 	void sortCombine(GPSD &fitComb, vector < cv::Vec<double, MAT_NUMBER> > arcMats[2], vector< vector<int> > s_group[2]);
 	
-	//弧段搜索方法
+	// PAS, AAS, BCV
 	void PosteriorArcsSearch(int point_idx); //Step: Search Linking
 	void AnteriorArcsSearch(int point_idx);  //Step: Search Linked
 	void BiDirectionVerification(GPSD &fitComb, vector < cv::Vec<double, MAT_NUMBER> > fitMats[2], vector< vector<int> > link_group[2], vector<unsigned char> &arc_grouped); //Step: Find Valid Combination
@@ -243,7 +238,7 @@ private:
 
 
 protected:
-	//为FAnB1_FBmA1情况进行弧段分组
+	//the region constraint and curvature constraint are used to calculate Lij in four cases
 	char Group4FAnB1_FBmA1(Point vecFet[8], const Point * const *l1, const Point * const *l2, const ArcSearchRegion * const asri, const ArcSearchRegion * const asrk) const
 	{
 		int linkval[2];
@@ -299,12 +294,12 @@ protected:
 		l1_l2_O.x = (vecFet[3].x >> 1) + l1[3]->x; l1_l2_O.y = (vecFet[3].y >> 1) + l1[3]->y;
 		vecl[0].x = l1_l2_O.x - l1[2]->x; vecl[0].y = l1_l2_O.y - l1[2]->y;
 		vecl[1].x = l2[1]->x - l1_l2_O.x; vecl[1].y = l2[1]->y - l1_l2_O.y;
-		if (!CONSTRAINT_NEIBOR_FSA(vecl))// 不满足邻域的FSA约束，则不可能相连，则记为-1
+		if (!CONSTRAINT_NEIBOR_FSA(vecl))
 			return -1;
 		vecFet[5].x = l2[3]->x - l2[2]->x; vecFet[5].y = l2[3]->y - l2[2]->y;
-		if (!CONSTRAINT_NEIBOR_TAIL(vecFet))// 不满足邻域的尾部约束，则不可能相连，则记为-1
+		if (!CONSTRAINT_NEIBOR_TAIL(vecFet))
 			return -1;
-		//满足了上述两个约束之后，则认为这两个弧段可能相连
+		
 		return 1;
 	}
 	char Group4FAnB1_CBmA1(Point vecFet[8], const Point * const *l1, const Point * const *l2) const
@@ -323,7 +318,7 @@ protected:
 		l1_l2_O.x = (vecFet[3].x >> 1) + l1[3]->x; l1_l2_O.y = (vecFet[3].y >> 1) + l1[3]->y;
 		vecl[0].x = l1_l2_O.x - l1[2]->x; vecl[0].y = l1_l2_O.y - l1[2]->y;
 		vecl[1].x = l2[1]->x - l1_l2_O.x; vecl[1].y = l2[1]->y - l1_l2_O.y;
-		if (!CONSTRAINT_NEIBOR_FSA(vecl))// 不满足邻域的FSA约束，则不可能相连，则记为-1
+		if (!CONSTRAINT_NEIBOR_FSA(vecl))// These two arcs do not satisfy the curvature contraint, i.e. Lij = -1;
 			return -1;
 		else
 			return 1;

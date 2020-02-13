@@ -4,7 +4,7 @@
 
 FLED::FLED(int drows, int dcols)
 {
-	// 老算法过渡到新算法的东西
+	
 	_T_dp = sqrt(2.0);
 	_T_gradnum = 5;
 

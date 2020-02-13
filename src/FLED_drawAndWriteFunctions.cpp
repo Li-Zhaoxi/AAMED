@@ -1,5 +1,97 @@
 #include "FLED.h"
 
+
+void FLED::writeDetailData()
+{
+	std::ofstream outfile("DetailAAMED.aamed", std::ios::binary);
+
+	// basic information
+	outfile << "basic";
+	outfile.write((char*)&iROWS, sizeof(int));
+	outfile.write((char*)&iCOLS, sizeof(int));
+	outfile << "endbasic.";
+
+	//write edgecontours;
+	outfile << "edgecontours";
+	int edgeNum = (int)edgeContours.size();
+	outfile.write((char*)&edgeNum, sizeof(int));
+	int edgeiNum;
+	Point dotTemp;
+	for (int i = 0; i < edgeNum; i++)
+	{
+		edgeiNum = (int)edgeContours[i].size();
+		outfile.write((char*)&edgeiNum, sizeof(int));
+		for (int j = 0; j < edgeiNum; j++)
+		{
+			dotTemp = edgeContours[i][j];
+			outfile.write((char*)&(dotTemp.x), sizeof(int));
+			outfile.write((char*)&(dotTemp.y), sizeof(int));
+		}
+	}
+	outfile << "endedgecontours.";
+
+	//write DP contours;
+	outfile << "dpcontours";
+	int dpNum = (int)dpContours.size();
+	outfile.write((char*)&dpNum, sizeof(int));
+	int dpiNum;
+	for (int i = 0; i < dpNum; i++)
+	{
+		dpiNum = (int)dpContours[i].size();
+		outfile.write((char*)&dpiNum, sizeof(int));
+		for (int j = 0; j < dpiNum; j++)
+		{
+			dotTemp = dpContours[i][j];
+			outfile.write((char*)&(dotTemp.x), sizeof(int));
+			outfile.write((char*)&(dotTemp.y), sizeof(int));
+		}
+	}
+	outfile << "enddpcontours.";
+
+	//write arccontours
+	outfile << "arccontours";
+	int fsaNum = (int)FSA_ArcContours.size();
+	outfile.write((char*)&fsaNum, sizeof(int));
+	int fsaiNum;
+	for (int i = 0; i < fsaNum; i++)
+	{
+		fsaiNum = (int)FSA_ArcContours[i].size();
+		outfile.write((char*)&fsaiNum, sizeof(int));
+		for (int j = 0; j < fsaiNum; j++)
+		{
+			dotTemp = FSA_ArcContours[i][j];
+			outfile.write((char*)&(dotTemp.x), sizeof(int));
+			outfile.write((char*)&(dotTemp.y), sizeof(int));
+		}
+	}
+	outfile << "endarccontours.";
+
+
+	// write linkmatrix.
+	outfile << "arcadjacencymatrix";
+	outfile.write((char*)&fsaNum, sizeof(int));
+	char* _LinkMatrix = LinkMatrix.GetDataPoint();
+	outfile.write(_LinkMatrix, sizeof(char)*fsaNum*fsaNum);
+	outfile << "endarcadjacencymatrix.";
+
+	// write final results;
+	outfile << "detectedellipses";
+	int elpNUm = detEllipses.size();
+	outfile.write((char*)&elpNUm, sizeof(int));
+	for (int i = 0; i < detEllipses.size(); i++)
+	{
+		outfile.write((char*)&detEllipses[i].center.x, sizeof(float));
+		outfile.write((char*)&detEllipses[i].center.y, sizeof(float));
+		outfile.write((char*)&detEllipses[i].size.height, sizeof(float));
+		outfile.write((char*)&detEllipses[i].size.width, sizeof(float));
+		outfile.write((char*)&detEllipses[i].angle, sizeof(float));
+	}
+	outfile << "enddetectedellipses.";
+
+	outfile.close();
+}
+
+
 void FLED::drawEdgeContours()
 {
 	Mat Img_T = Mat::zeros(iROWS, iCOLS, CV_8UC1) + 255;
@@ -14,30 +106,6 @@ void FLED::drawEdgeContours()
 	}
 	cv::imshow("EdgeContours", Img_T);
 	cv::imwrite("Output Data/EdgeContours.png", Img_T);
-}
-
-void FLED::writeEdgeContours()
-{
-	std::ofstream outfile("Output Data/EdgeContours.fled", std::ios::binary);
-	uchar temp = FLED_EDGECONTOURS;
-	outfile.write((char*)&temp, 1);
-	int edgeNum = (int)edgeContours.size();
-	outfile.write((char*)&edgeNum, sizeof(int));
-	
-	int edgeiNum;
-	Point dotTemp;
-	for (int i = 0; i < edgeNum; i++)
-	{
-		edgeiNum = (int)edgeContours[i].size();
-		outfile.write((char*)&edgeiNum, sizeof(int));
-		for (int j = 0; j < edgeiNum; j++)
-		{
-			dotTemp = edgeContours[i][j];
-			outfile.write((char*)&(dotTemp.x), sizeof(int));
-			outfile.write((char*)&(dotTemp.y), sizeof(int));
-		}
-	}
-	outfile.close();
 }
 
 void FLED::drawDPContours()
@@ -59,30 +127,6 @@ void FLED::drawDPContours()
 	cv::imshow("dpContours", Img_T);
 	cv::waitKey(1);
 	cv::imwrite("Output Data/DPContours.png", Img_T);
-}
-
-void FLED::writeDPContours()
-{
-	std::ofstream outfile("Output Data/DPContours.fled", std::ios::binary);
-	uchar temp = FLED_DPCONTOURS;
-	outfile.write((char*)&temp, 1);
-	int dpNum = (int)dpContours.size();
-	outfile.write((char*)&dpNum, sizeof(int));
-
-	int dpiNum;
-	Point dotTemp;
-	for (int i = 0; i < dpNum; i++)
-	{
-		dpiNum = (int)dpContours[i].size();
-		outfile.write((char*)&dpiNum, sizeof(int));
-		for (int j = 0; j < dpiNum; j++)
-		{
-			dotTemp = dpContours[i][j];
-			outfile.write((char*)&(dotTemp.x), sizeof(int));
-			outfile.write((char*)&(dotTemp.y), sizeof(int));
-		}
-	}
-	outfile.close();
 }
 
 void FLED::drawFSA_ArcContours()
@@ -110,41 +154,6 @@ void FLED::drawFSA_ArcContours()
 	cv::imwrite("Output Data/FSA_ArcContours.png", Img_T);
 }
 
-void FLED::writeFSA_ArcContours()
-{
-	std::ofstream outfile("Output Data/FSA_ArcContours.fled",std::ios::binary);
-	uchar temp = FLED_FSAARCCONTOURS;
-	outfile.write((char*)&temp, 1);
-	int fsaNum = (int)FSA_ArcContours.size();
-	outfile.write((char*)&fsaNum, sizeof(int));
-
-	int fsaiNum;
-	Point dotTemp;
-	for (int i = 0; i < fsaNum; i++)
-	{
-		fsaiNum = (int)FSA_ArcContours[i].size();
-		outfile.write((char*)&fsaiNum, sizeof(int));
-		for (int j = 0; j < fsaiNum; j++)
-		{
-			dotTemp = FSA_ArcContours[i][j];
-			outfile.write((char*)&(dotTemp.x), sizeof(int));
-			outfile.write((char*)&(dotTemp.y), sizeof(int));
-		}
-	}
-	outfile.close();
-}
-
-void FLED::writeLinkMatrix()
-{
-	std::ofstream outfile("Output Data/FSA_ArcLinkMatrix.fled", std::ios::binary);
-	uchar temp = FLED_FSAARCSLINKMATRIX;
-	outfile.write((char*)&temp, 1);
-	int fsaNum = (int)FSA_ArcContours.size();
-	outfile.write((char*)&fsaNum, sizeof(int));
-	char* _LinkMatrix = LinkMatrix.GetDataPoint();
-	outfile.write(_LinkMatrix, sizeof(char)*fsaNum*fsaNum);
-	outfile.close();
-}
 
 void FLED::drawEllipses()
 {
@@ -161,7 +170,7 @@ void FLED::drawEllipses()
 		ellipse(Img_T, temp, cv::Scalar(0, 0, 255), 2);
 	}
 	cv::imshow("Ellipses", Img_T);
-	cout << "ÍÖÔ²¸öÊýÎª£º" << detEllipses.size() << endl;
+	cout << "The number of ellipses£º" << detEllipses.size() << endl;
 }
 void FLED::drawFLED(Mat ImgC, double ust_time)
 {

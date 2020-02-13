@@ -9,7 +9,7 @@ void EllipseNonMaximumSuppression(std::vector<cv::RotatedRect> &detElps, std::ve
 
 
 
-	//计算所有椭圆对应的overlap
+	// Calculate the IoUs of all ellipses
 	for (int i = 0; i < elps_num - 1; i++)
 	{
 		_overlaps[i*elps_num + i] = 0;
@@ -21,20 +21,20 @@ void EllipseNonMaximumSuppression(std::vector<cv::RotatedRect> &detElps, std::ve
 
 	//cv::Mat olp(elps_num, elps_num, CV_64FC1, _overlaps);
 	//std::cout << olp << std::endl;
-	// 获得排序结果
+	// Get the sorted results.
 	std::vector<int> sort_idx(elps_num);
 	std::iota(sort_idx.begin(), sort_idx.end(), 0);
 	sort(sort_idx.begin(), sort_idx.end(),
 		[&detEllipseScore](int i1, int i2) {return detEllipseScore[i1] > detEllipseScore[i2]; });
 
 
-	// 进行NMS排序
+	// NMS
 	std::vector<unsigned char> isValid(elps_num, 1);
 	std::vector<cv::RotatedRect> clusterELlipse;
 	for (int i = 0; i < elps_num; i++)
 	{
-		int select_idx = sort_idx[i]; // 根据得分得到的椭圆
-		if (isValid[select_idx] == 0) continue; // 这个椭圆已被聚类
+		int select_idx = sort_idx[i]; 
+		if (isValid[select_idx] == 0) continue; 
 
 		double* _sel_overlaps = _overlaps + select_idx*elps_num;
 		for (int k = 0; k < elps_num; k++)
@@ -53,7 +53,7 @@ void EllipseNonMaximumSuppression(std::vector<cv::RotatedRect> &detElps, std::ve
 
 
 
-//椭圆形状参数转换为一般方程参数
+// convert shape parameters to general equation parameters
 static void ELPShape2Equation(double *elpshape, double *outparms)
 {
 	double xc, yc, a, b, theta;
@@ -90,7 +90,7 @@ static void ELPShape2Equation(double *elpshape, double *outparms)
 
 }
 
-// 计算椭圆一般方程当y值已知时，计算出的两个交点，如果不存在则为空集
+
 static bool CalculateRangeAtY(double *elpparm, double y, double *x1, double *x2)
 {
 	double A, B, C, D, E, F, t1, t2, Delta;
@@ -117,7 +117,7 @@ static bool CalculateRangeAtY(double *elpparm, double y, double *x1, double *x2)
 }
 
 
-// 给定一个椭圆，计算其y的取值范围
+
 static void CalculateRangeOfY(double *elp_equ, double *x_min, double *x_max, double *y_min, double *y_max)
 {
 
@@ -141,7 +141,7 @@ static void CalculateRangeOfY(double *elp_equ, double *x_min, double *x_max, dou
 
 
 
-// 快速的计算椭圆overlap的一种方法
+
 double EllipseOverlap(cv::RotatedRect &ellipse1, cv::RotatedRect &ellipse2)
 {
 	double t1, t2;

@@ -67,12 +67,12 @@ void FLED::ClusterEllipses(std::vector<cv::RotatedRect> &detElps, vector<double>
 				continue;
 			}
 
-			// 到这里说明第i个检测椭圆与第j类椭圆是相似的。如果这个椭圆比类别的椭圆分数高
+			
 
 			//Score
 			float score_j = scores[j];
 
-			if (score_i > score_j) //保留得分较高的相似椭圆
+			if (score_i > score_j) 
 			{
 				clusters[j] = e1;
 				scores[j] = score_i;
@@ -174,7 +174,7 @@ bool FLED::Validation(cv::RotatedRect &res, double *detScore)
 		w = m / (m*m*vldBaseData_x * vldBaseData_x + vldBaseData_y * vldBaseData_y);
 		//w = 1;
 		sum_w += w;
-		//获取采样点
+		//Get a sample point
 		x = _ROT_TRANS[0] * vldBaseData_x + _ROT_TRANS[1] * vldBaseData_y + xyCenter[0];
 		y = _ROT_TRANS[2] * vldBaseData_x + _ROT_TRANS[3] * vldBaseData_y + xyCenter[1];
 		if (OutOfRange(x, y))
@@ -184,13 +184,13 @@ bool FLED::Validation(cv::RotatedRect &res, double *detScore)
 		//I_1(V_i)
 		if (_boldData[idxixy] != 0)
 		{
-			//获取真实边缘点
+			//get the real point on the edge map.
 			xOffset = _boldData[idxixy] / 10; yOffset = _boldData[idxixy] - 10 * xOffset;
 			xOffset = xOffset - 1; yOffset = yOffset - 2;
 			xReal = x - xOffset; yReal = y - yOffset;
 			idxdxyReal = dIDX(xReal, yReal);
 
-			// 估计当前点的梯度值
+			// estimate the grad of this point.
 #if DEFINITE_ERROR_BOUNDED
 			node_center = data + idxdxyReal;
 
@@ -318,7 +318,7 @@ bool FLED::fastValidation(cv::RotatedRect &res, double *detScore)
 
 	float m = r / R;
 
-	if (m < 0.2) { detScore = 0; return false; } // 出现脏数据，使用这方法解决
+	if (m < 0.2) { detScore = 0; return false; } 
 	if (m < 0.4) m = 0.4;
 	
 
@@ -429,12 +429,12 @@ bool FLED::fastValidation(cv::RotatedRect &res, double *detScore)
 			continue;
 		}
 		onNum += 1;
-		//获取真实边缘点
+		//get the real point on the edge map.
 		xOffset = _boldData[idxixy] / 10; yOffset = _boldData[idxixy] - 10 * xOffset;
 		xOffset = xOffset - 1; yOffset = yOffset - 2;
 		xReal = x - xOffset; yReal = y - yOffset;
 		idxdxyReal = dIDX(xReal, yReal);
-		// 估计当前点的梯度值
+		// estimate the grad of this point.
 #if DEFINITE_ERROR_BOUNDED
 		node_center = data + idxdxyReal;
 
@@ -647,12 +647,12 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 
 		if (_boldData[idxixy] == 0) continue;
 
-		//获取真实边缘点
+		// get the real point on the edge map.
 		xOffset = _boldData[idxixy] / 10; yOffset = _boldData[idxixy] - 10 * xOffset;
 		xOffset = xOffset - 1; yOffset = yOffset - 2;
 		xReal = x - xOffset; yReal = y - yOffset;
 		idxdxyReal = dIDX(xReal, yReal);
-		// 估计当前点的梯度值
+		// estimate the grad of this point.
 #if DEFINITE_ERROR_BOUNDED
 		node_center = data + idxdxyReal;
 

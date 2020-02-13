@@ -2,3 +2,6 @@
 /python/*.pyd
 /python/build
 /labeltool/*.mexw64
+/measuretool/MeasureTools/*.mexw64
+
+*.mexw64

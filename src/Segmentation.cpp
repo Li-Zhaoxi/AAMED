@@ -4,10 +4,10 @@
 
 void FLED::FSA_Segment(vector<Point> &dpContour)
 {
-	// 参数传入
+	
 	const double Theta_fsa = _theta_fsa, Length_fsa = _length_fsa, Length_fsa_inv = 1 / _length_fsa;
 
-	//变量定义
+	
 	cv::Vec4i temp_line;
 	Point Ai[3], ni[2];
 	cv::Point2f FSA;
@@ -79,11 +79,9 @@ void FLED::FSA_Segment(vector<Point> &dpContour)
 
 void FLED::SegmentAnArc(vector<Point> &dpContour)
 {
-	// 参数传入
 	const double Theta_fsa = _theta_fsa, Length_fsa = _length_fsa, Length_fsa_inv = 1 / _length_fsa;
 	const int StrongPointNum = 4;
 
-	//变量定义
 	cv::Vec4i temp_line;
 	Point Ai[3], ni[2];
 	cv::Point2f FSA;
@@ -94,7 +92,7 @@ void FLED::SegmentAnArc(vector<Point> &dpContour)
 
 	
 	vector< vector<Point> > tmpAllSegmentArcs;
-	vector<int> tmpArcsDir; // 0:表示方向无法确定（就一个dp段），1：dir > 0，-1：表示dir < 0
+	vector<int> tmpArcsDir;
 	for (int i = 1; i < dpContourNum; i++)
 	{
 		oneContour.clear();
@@ -117,7 +115,7 @@ void FLED::SegmentAnArc(vector<Point> &dpContour)
 		tp[1] = FSA.y / sin(Theta_fsa);
 		tp[2] = FSA.x*FSA.x + FSA.y*FSA.y;
 
-		if (tp[0] <= 0 || tp[1] <= 0 || tp[2]<Length_fsa_inv2 || tp[2]>Length_fsa2) // 表示Ai[2]无法组合
+		if (tp[0] <= 0 || tp[1] <= 0 || tp[2]<Length_fsa_inv2 || tp[2]>Length_fsa2) 
 		{
 			tmpAllSegmentArcs.push_back(oneContour), tmpArcsDir.push_back(0);
 			continue;
@@ -147,13 +145,7 @@ void FLED::SegmentAnArc(vector<Point> &dpContour)
 		tmpAllSegmentArcs.push_back(oneContour), tmpArcsDir.push_back(dir);
 	}
 
-	////针对这些情况进行主次分析
 
-	//int seg_num = tmpAllSegmentArcs.size();
-	//for (int i = 0; i < seg_num; i++)
-	//{
-
-	//}
 
 
 
@@ -200,42 +192,3 @@ void FLED::SortArcs(vector<vector<Point>> &detArcs)
 
 }
 
-
-
-
-void FLED::FSA_Segment_Approx(vector<Point> &dpContour)
-{
-	const int dpNum = dpContour.size(); // 获得弧段节点个数
-	int dp_step = dpNum;
-
-	int idx_dst, idx_ded;
-	double fitMat[MAT_NUMBER], fiterror;
-	cv::RotatedRect fitelp;
-	for (int dp_step = dpNum; dp_step >= MIN_DP_CONTOUR_NUM + 1; dp_step++) // 最小弧段个数为3，那么对应节点个数为4
-	{
-		// dp_step 为对应长度
-		int step_start, step_end;
-		for (step_start = 0, step_end = step_start + dp_step - 1; step_end < dpNum; step_start++, step_end++)
-		{
-			idx_dst = dIDX(dpContour[step_start].x, dpContour[step_start].y);
-			idx_ded = dIDX(dpContour[step_end].x, dpContour[step_end].y);
-			for (int k = 0; k < MAT_NUMBER; k++)
-				fitMat[k] = data[idx_ded].nodesMat[k] - data[idx_dst].nodesMat[k];
-
-			ElliFit(fitMat, fiterror, fitelp); // 拟合出一个矩阵
-
-			
-
-			
-		}
-
-	}
-}
-
-
-
-
-double FLED::distPt2Elp(cv::Point &pt, cv::RotatedRect &elp)
-{
-	return 0;
-}
