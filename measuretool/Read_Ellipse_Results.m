@@ -4,44 +4,7 @@ imgnum = length(imgname);
 dt_elps = cell(1, imgnum);
 dt_time = zeros(1,imgnum);
 
-if strcmp(dataset_name, 'aamed2')
-    for i = 1:imgnum
-%         imgname{i}
-        fid_dt = fopen([filepath, imgname{i},'.txt']);
-        if fid_dt == -1
-            error([dataset_name, ': wrong file path']);
-        end
-        elps_data = [];
-        %dt_time(i) = str2num(fgetl(fid_dt));
-        while feof(fid_dt) == 0
-            tstr = fgetl(fid_dt);
-            if tstr == -1
-                break;
-            end
-            elp_datat = str2num(tstr);
-            if elp_datat(1) == 2
-                continue;
-            end
-            if elp_datat(1) ~= 1
-%                 continue;
-            end
-            elp_datat(1) = [];
-            elp_datat(1:2) = elp_datat(1:2) + 1;
-            elp_datat(3:4) = [elp_datat(4), elp_datat(3)];
-            elp_datat(5) = elp_datat(5);
-            
-            elps_data = [elps_data; elp_datat];
-            
-        end
-%         elps_data = mexClusterEllipses(elps_data);
-        dt_elps{i} = elps_data;
-        fclose(fid_dt);
-    end
-    
-    return;
-end
-
-if strcmp(dataset_name, 'fled')
+if strcmp(dataset_name, 'aamed')
     for i = 1:imgnum
         fid_dt = fopen([filepath, imgname{i},'.fled.txt']);
         if fid_dt == -1
@@ -162,7 +125,7 @@ if strcmp(dataset_name, 'prasad')
         load([filepath,'prasad.mat']); % imgname, par_Param_all, par_Param_good, par_t_used
         isSaveInaFile = 1;
     catch
-        warning('prasad.mat不存在，尝试一张张数据读取');
+        warning('prasad.mat does not exist, try to read data one by one.');
         isSaveInaFile = 0;
     end
     
@@ -185,9 +148,6 @@ if strcmp(dataset_name, 'prasad')
             load([filepath, imgname{i},'.mat']);
             det_param = Param_good;
             ellipse_param = det_param([3,4,1,2,5],:);
-            
-            %         ratio = det_param(8,:);
-            %         idx = ratio <0.7;
             
             idx = ellipse_param(3,:) < 10 | ellipse_param(4,:) < 10;
             ellipse_param(:,idx) = [];
@@ -232,43 +192,9 @@ if strcmp(dataset_name, 'amed')
     
 end
 
-if strcmp(dataset_name, 'aamed')
-    
-    
-    for i = 1:imgnum
-        fid_dt = fopen([filepath, imgname{i},'.aamed.txt']);
-        if fid_dt == -1
-            error([dataset_name, ': wrong file path']);
-        end
-        elps_data = [];
-        dt_time(i) = str2num(fgetl(fid_dt));
-        while feof(fid_dt) == 0
-            elp_datat = str2num(fgetl(fid_dt));
-            if elp_datat(1) == 2
-                continue;
-            end
-            elp_datat(1) = [];
-            temp = elp_datat(1);
-            elp_datat(1) = elp_datat(2);
-            elp_datat(2) = temp;
-            elp_datat(1:2) = elp_datat(1:2)+1;
-            elp_datat(3:4) = elp_datat(3:4)/2;
-            elp_datat(5) = -elp_datat(5)/180*pi;
-            
-            elps_data = [elps_data; elp_datat];
-        end
-        dt_elps{i} = elps_data;
-        fclose(fid_dt);
-    end
-    
-    return;
-    
-end
-
 if strcmp(dataset_name , 'rtded') || strcmp(dataset_name , 'wang')
     
     for i = 1:imgnum
-        %elp_data = load([filepath,imgname{i},'.rtded.txt']);
         elp_data = load([filepath,imgname{i},'.wang.txt']);
         if isempty(elp_data)
             dt_elps{i} = [];
@@ -339,15 +265,12 @@ if strcmp(dataset_name, 'elsd')
         if ~isempty(elp_data)
             elp_data(:,1:2) = elp_data(:,1:2) + 1;
         end
-        
-        %elp_data = ellipses_cluster(elp_data); % 椭圆聚类
-        
+               
         
         dt_elps{i} = elp_data;
         fclose(fid_dt);
     end
     
-    % load([elsdpath,'elsdtime.mat']);
     useTime = 0;
     dt_time = useTime;
     
@@ -361,32 +284,6 @@ if strcmp(dataset_name,'rcnn')
     for i = 1:length(dt_elps)
         dt_elps{i} = mexClusterEllipses(dt_elps{i});
     end
-    
-%     [imgnames_dt, bboxs_dt, use_time_dt] = Read_RCNN_BBox([filepath, 'result_images.txt']);
-%     
-%     for i = 1:imgnum
-%         isFind = 0; idx = -1;
-%         for j = 1:length(bboxs_dt)
-%             if strcmp(imgname{i}(1:(end-4)), imgnames_dt{j}(1:(end-4)))
-%                 isFind = 1;
-%                 idx = j;
-%                 break
-%             end
-%         end
-%         
-%         if isFind == 0
-%             dt_elps{i} = [];
-%             continue;
-%         end
-%         
-%         bboxs = bboxs_dt{idx};
-%         elps = zeros(size(bboxs,1),5);
-%         elps(:,1) = (bboxs(:,1) + bboxs(:,3))/2;
-%         elps(:,2) = (bboxs(:,2) + bboxs(:,4))/2;
-%         elps(:,3) = (bboxs(:,3) - bboxs(:,1))/2;
-%         elps(:,4) = (bboxs(:,4) - bboxs(:,2))/2;
-%         dt_elps{i} = elps;
-%     end
     
     return;
 end
@@ -409,12 +306,7 @@ end
 if strcmp(dataset_name, 'lu')
     load_path = [filepath, 'lu.mat'];
     load(load_path);
-    
-%     for i = 1:length(det_ellipses)
-%         tmp = det_ellipses{i};
-%         tmp(:,1:2) = tmp(:,1:2)+1;
-%         det_ellipses{i} = tmp;
-%     end
+   
     
     dt_elps = det_ellipses;
     dt_time = det_time;
@@ -488,6 +380,6 @@ if strcmp(dataset_name, 'prasad2')
     dt_elps = dt_elps_new;
     return;
 end
-error(['不存在当前数据集：', dataset_name]);
+error(['Current dataset does not exist: ', dataset_name]);
 
 end

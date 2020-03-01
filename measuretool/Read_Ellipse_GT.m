@@ -30,7 +30,6 @@ if strcmp(dataset, 'prasad')
             str = fgetl(fid_gt);
             elp_data(j,:) = str2num(str);
         end
-%         elp_data(:,3:4) = elp_data(:,3:4) +1;
         gt_elps{i}=elp_data;
         fclose(fid_gt);
     end
@@ -63,7 +62,7 @@ if strcmp(dataset, 'random') || strcmp(dataset, 'smartphone') || strcmp(dataset,
             elp_data(j,:) = str2num(str);
         end
         
-        elp_data(:,1:2)=elp_data(:,1:2)+1; % 设置图像角标从1开始
+        elp_data(:,1:2)=elp_data(:,1:2)+1;
         
         elp_data(:,5) = elp_data(:,5)/180*pi;
         gt_elps{i}=elp_data;
@@ -188,7 +187,7 @@ if strcmp(dataset, 'satellite1') || strcmp(dataset, 'satellite2') || strcmp(data
     return;
 end
 
-error(['不存在当前数据集：', dataset]);
+error(['Current dataset does not exist: ', dataset]);
 
 
 

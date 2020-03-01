@@ -3,5 +3,6 @@
 /python/build
 /labeltool/*.mexw64
 /measuretool/MeasureTools/*.mexw64
+/measuretool/*.mat
 
 *.mexw64

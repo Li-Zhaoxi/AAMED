@@ -1,20 +1,30 @@
 clc;clear;close all;
-% 计算所有数据集，直接获得所有的PRF值
+% Ellipse Measure Tool. Update: 16/12/2018
 
-data_root_path = 'F:\Arcs-Adjacency-Matrix-Based-Fast-Ellipse-Detection\ellipse_dataset\';
+addpath MeasureTools
+
+data_root_path = 'E:\aamed_ellipse_datasets\'; 
 
 dataset_name = [{'Synthetic Images - Occluded Ellipses'},...
     {'Synthetic Images - Overlap Ellipses'},...
     {'Prasad Images - Dataset Prasad'},...
     {'Random Images - Dataset #1'},...
-    {'Smartphone Images - Dataset #2'}];
+    {'Smartphone Images - Dataset #2'},...
+    {'Concentric Ellipses - Dataset Synthetic'},...
+    {'Concurrent Ellipses - Dataset Synthetic'},...
+    {'Satellite Images - Dataset Meng #1'},...
+    {'Satellite Images - Dataset Meng #2'}];
 
-gt_label = [{'occluded'},{'overlap'},{'prasad'},{'random'},{'smartphone'}];
+gt_label = [{'occluded'},{'overlap'},{'prasad'},{'random'},{'smartphone'},...
+    {'concentric'},{'concurrent'},{'satellite1'}, {'satellite2'}];
 
-methods_name = 'TDED';
-method_label = 'tded';
-for dsi = 5;%length(dataset_name)
-    disp(['正在评价数据集: ',dataset_name{dsi}]);
+methods_name = 'AAMED';
+method_label = 'aamed';
+
+ellipse_result = cell(1, length(dataset_name));
+
+for dsi = [1,2,6,7,3,4,5,8,9]
+    disp(['Evaluating dataset: ',dataset_name{dsi}]);
     imgname_path = [data_root_path,dataset_name{dsi},'\imagenames.txt'];
     fid = fopen(imgname_path,'r');
     imgnum = 0;
@@ -24,10 +34,12 @@ for dsi = 5;%length(dataset_name)
         imgname{imgnum} = fgetl(fid);
     end
     fclose(fid);
-    
+
     dirpath = [data_root_path,dataset_name{dsi},'\'];
     
-    if strcmp(gt_label{dsi},'occluded') || strcmp(gt_label{dsi},'overlap')
+    %% Read ground truth
+    if strcmp(gt_label{dsi},'occluded') || strcmp(gt_label{dsi},'overlap') || ...
+            strcmp(gt_label{dsi},'concentric') || strcmp(gt_label{dsi},'concurrent') % 仿真数据集
         [gt_elps, gt_size] = Read_Ellipse_GT([dirpath,'gt\'], ...
             [dirpath,'images\'], imgname, gt_label{dsi});
         T_overlap = 0.95;
@@ -40,65 +52,58 @@ for dsi = 5;%length(dataset_name)
     for k = 1:length(gt_elps)
         elp_num = elp_num + size(gt_elps{k},1);
     end
-%     disp(['真实椭圆个数为：', num2str(elp_num)]);
-    
+    %% Read detection results.
     [dt_elps, dt_time] = Read_Ellipse_Results([dirpath,methods_name,'\'], ...
         imgname, method_label);
     
     
-    Pos = 0; detN = 0; gtN = 0;
-    use_res = dt_elps;
-    Pos_each = zeros(1,imgnum);
-    detN_each = zeros(1,imgnum);
-    gtN_each = zeros(1,imgnum);
+    pos_num = zeros(1,imgnum);  pos_elp = cell(1, imgnum); 
+    det_num = zeros(1,imgnum);  det_elp = cell(1,imgnum); 
+    gt_num = zeros(1,imgnum);   gt_elp = cell(1, imgnum);  
     for i = 1:imgnum
-        elpnum_det = size(use_res{i},1);
-        elpnum_gt = size(gt_elps{i},1);
-        
-        detN = detN + elpnum_det;
-        gtN = gtN + elpnum_gt;
-        
-        detN_each(i) = elpnum_det;
-        gtN_each(i) = elpnum_gt;
-        
-        dt_match_num = zeros(1, elpnum_det);
-        gt_multi_use = zeros(1, elpnum_gt);
-        for p = 1:elpnum_gt
-            elp_gt = gt_elps{i}(p,:);
-            for q = 1:elpnum_det
-                elp_det = use_res{i}(q,:);
-                [ration, ~] = mexCalculateOverlap(elp_gt,elp_det);
-                if ration > T_overlap
-                    Pos = Pos + 1;
-                    
-                    dt_match_num(q) = dt_match_num(q) + 1;
-                    gt_multi_use(p) = gt_multi_use(p) + 1;
-%                     break;
-                end
+        detected_ellipses = dt_elps{i};
+        gt_ellipses = gt_elps{i};
+        elpnum_det = size(detected_ellipses, 1);
+        elpnum_gt = size(gt_ellipses, 1);
+        elps_overlap = zeros(elpnum_det, elpnum_gt);
+        for p = 1:elpnum_det
+            for q = 1:elpnum_gt
+                [ration, ~] = mexCalculateOverlap(detected_ellipses(p,:),gt_ellipses(q,:));
+                elps_overlap(p,q) = ration;
             end
         end
-        
-        idx = find(dt_match_num>=2);
-        more_det = sum(dt_match_num(idx)) - length(idx);
-        detN = detN + more_det;
-        
-        idx = find(gt_multi_use>=2);
-        more_gt = sum(gt_multi_use(idx)) - length(idx);
-        gtN = gtN + more_gt;
-        %disp(num2str([Pos,detN,gtN]));
+        res = elps_overlap > T_overlap;
+        gt_match = sum(res, 1);
+        det_match = sum(res, 2);
+        num_loss_elp = sum(gt_match == 0);
+        num_false_elp = sum(det_match == 0);
+        num_true_elp = sum(gt_match > 0);
+        num_det_true_elp = sum(det_match > 0);
+        pos_num(i) = num_true_elp;
+        det_num(i) = num_true_elp + num_false_elp + max([num_det_true_elp - num_true_elp, 0]);
+        gt_num(i) = num_true_elp + num_loss_elp;
     end
+
+    pos_all = sum(pos_num);
+    det_all = sum(det_num);
+    gt_all = sum(gt_num);
+    P = pos_all / det_all;
+    R = pos_all / gt_all;
+    F = 2 * P * R / (P + R);
     
-    P = Pos/detN;
-    R = Pos/gtN;
-    beta = 1;
-    F = (beta^2+1)*P*R/(beta*P+R);
-    disp(['Precision:',num2str(P*100),'%,  Recall:',...
-        num2str(R*100),'%,  F-measure:',num2str(F*100),'%.']);
+    disp(['Precision: ',num2str(P*100),'%,  Recall: ',...
+        num2str(R*100),'%,  F-measure: ',num2str(F*100),'%. ']);
+    disp(['Average detected time: ', num2str(mean(dt_time)), ' ms.']);
     
-    mean(dt_time)
+    ellipse_result{dsi}.ds_name = dataset_name(dsi);
+    ellipse_result{dsi}.method = methods_name;
+    ellipse_result{dsi}.pos_all = pos_all;
+    ellipse_result{dsi}.det_all = det_all;
+    ellipse_result{dsi}.gt_all = gt_all;
+    ellipse_result{dsi}.P = P;
+    ellipse_result{dsi}.R = R;
+    ellipse_result{dsi}.F = F;
+    ellipse_result{dsi}.avgtime = mean(dt_time);
 end
 
-% 
-% Pos
-% detN
-% gtN
+save([methods_name,'-results.mat'],'ellipse_result');
