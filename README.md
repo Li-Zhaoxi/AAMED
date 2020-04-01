@@ -27,6 +27,7 @@ main.cpp has given an example to detect ellipses from an image.
 ### 1.2 Python
 
 **Install**
+
 In setup.py, you need to config `opencv_include, opencv_lib_dirs, libraries` correctly about OpenCV. Then, 
 
 	cd python
@@ -35,6 +36,26 @@ In setup.py, you need to config `opencv_include, opencv_lib_dirs, libraries` cor
 **Test**
 
     python test_aamed.py
+
+### 1.3 MATLAB
+
+We have packaged AAMED, it can be used in MATLAB. AAMED needs OpenCV support. Note that if `mexdestoryaamed(obj) `is not called, the memory used in AAMED will remain in MATLAB all the time. Only restart matlab can clear the memory.
+
+**Install**
+
+You need to config OpenCV include path and library path in `setup.m` firstly. Then, you can run `setup.m` to compile **mexAAMED, mexdestoryAAMED, mexdetectImagebyAAMED, mexSetAAMEDParameters**.
+
+**Test**
+
+`test_aamed.m` provides an example to detect ellipses from an image.
+
+    obj = mexAAMED(540, 960); % AAMED only needs to be defined once
+    mexSetAAMEDParameters(obj, pi/3, 3.4, 0.77); % Set the parameters.
+
+    % This function can be used multiple times to detect ellipses from images
+    detElps = mexdetectImagebyAAMED(obj, img); 
+
+    mexdestoryAAMED(obj); %Free memory (very important).
 
 
 ## 2 Label Tool
