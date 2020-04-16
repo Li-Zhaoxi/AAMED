@@ -1,6 +1,6 @@
 #pragma once
 
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 // 给定4个点可以确定一个搜索区间，
 class ArcSearchRegion

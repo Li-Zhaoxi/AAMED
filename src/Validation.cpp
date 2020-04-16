@@ -1,5 +1,13 @@
 #include "FLED.h"
 
+
+// When compiling AAMED with GCC under Linux, 
+// some functions (cos, sin, tan, etc.) will generate some bugs, 
+// which will result in the inability to detect ellipses.
+#if defined(__GNUC__)
+using namespace std;
+#endif
+
 void FLED::ClusterEllipses(std::vector<cv::RotatedRect> &detElps, vector<double> &detEllipseScore)
 {
 	const int ellipse_num = (int)detElps.size();
@@ -94,10 +102,6 @@ void FLED::ClusterEllipses(std::vector<cv::RotatedRect> &detElps, vector<double>
 	clusters.swap(detElps);
 	scores.swap(detEllipseScore);
 }
-
-
-
-
 
 
 
@@ -299,6 +303,7 @@ bool FLED::Validation(cv::RotatedRect &res, double *detScore)
 }
 
 
+/*
 bool FLED::fastValidation(cv::RotatedRect &res, double *detScore)
 {
 	const float angleRot(res.angle / 180 * CV_PI),
@@ -527,25 +532,53 @@ bool FLED::fastValidation(cv::RotatedRect &res, double *detScore)
 	
 	
 }
+*/
 
-bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
+
+
+bool FLED::fastValidation(cv::RotatedRect &res, double *detScore)
 {
 	const float angleRot(res.angle / 180 * CV_PI),
 		xyCenter[2] = { res.center.x, res.center.y },
 		R(res.size.width / 2), r(res.size.height / 2);// The major-axis and minor-axis.
 
-													  // Shape constraint I_0(R,r).  Note: sqrt(2) -1 ~= 0.414213562373095
-	if (4 * R*r < _T_min_minor*_T_min_minor)
-		return false;
-	if (R*r < _T_dp / (0.414213562373095)*sqrt(R*R + r*r))
-		return false;
+	// Shape constraint I_0(R,r).  Note: sqrt(2) - 1 ~= 0.414213562373095
 
-
+	// Shape Index
+	if (R*r * 4 < _T_min_minor * _T_min_minor)
+		return false;
+	if (R*r < 2 * _T_dp / (0.414213562373095)*sqrt(R*R + r * r))
+		return false;
+	
 	const float _ROT_TRANS[4] = { R * cos(angleRot), -r * sin(angleRot), R  * sin(angleRot), r  * cos(angleRot) },
-		_ROT_GRAD[4] = { -r*sin(angleRot), -R*cos(angleRot), r*cos(angleRot), -R*sin(angleRot) };
+		_ROT_GRAD[4] = { -r * sin(angleRot), -R * cos(angleRot), r*cos(angleRot), -R * sin(angleRot) };
 
 	float m = r / R;
 
+	if (m < 0.2) { detScore = 0; return false; } // \B3\F6\CF\D6\D4\E0\CA\FD\BEݣ\ACʹ\D3\C3\D5ⷽ\B7\A8\BD\E2\BE\F6
+	if (m < 0.4) m = 0.4;
+
+#if !FASTER_ELLIPSE_VALIDATION
+	float tmpw, vldBaseData_x, vldBaseData_y, tmpx, tmpy, tmpgx, tmpgy;
+	for (int i = 0; i < VALIDATION_NUMBER; i++)
+	{
+		vldBaseData_x = vldBaseData[i][0];
+		vldBaseData_y = vldBaseData[i][1];
+		tmpw = m / (m*m*vldBaseData_x * vldBaseData_x + vldBaseData_y * vldBaseData_y);
+		tmpx = _ROT_TRANS[0] * vldBaseData_x + _ROT_TRANS[1] * vldBaseData_y + xyCenter[0];
+		tmpy = _ROT_TRANS[2] * vldBaseData_x + _ROT_TRANS[3] * vldBaseData_y + xyCenter[1];
+		tmpgx = _ROT_GRAD[0] * vldBaseData_x + _ROT_GRAD[1] * vldBaseData_y;
+		tmpgy = _ROT_GRAD[2] * vldBaseData_x + _ROT_GRAD[3] * vldBaseData_y;
+
+
+		sample_x[i] = tmpx;
+		sample_y[i] = tmpy;
+		grad_x[i] = tmpgx;
+		grad_y[i] = tmpgy;
+		sample_weight[i] = tmpw;
+	}
+#else
+	// Estimate the sampling points number N. Note: N = RoundEllipseCircum;
 	// Use SSE to faster the step of ellipse validation.
 	__m256 _rot_trans_0 = _mm256_set1_ps(_ROT_TRANS[0]),
 		_rot_trans_1 = _mm256_set1_ps(_ROT_TRANS[1]),
@@ -563,7 +596,7 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 	__m256 mm = _mm256_set1_ps(m*m);
 	__m256 tmp_x, tmp_y, tmp_gx, tmp_gy, tmp_wx, tmp_wy, tmp_w;
 
-	for (int i = 0; i < VALIDATION_NUMBER; i += sizeof(__m256d) / sizeof(float))
+	for (int i = 0; i < VALIDATION_NUMBER; i += sizeof(__m256) / sizeof(float))
 	{
 		__m256 base_x = _mm256_load_ps(vldBaseDataX + i);
 		__m256 base_y = _mm256_load_ps(vldBaseDataY + i);
@@ -599,8 +632,11 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 		_mm256_storeu_ps(sample_weight + i, tmp_w);
 
 	}
+#endif
 
-	// Estimate the sampling points number N. Note: N = RoundEllipseCircum;
+
+
+
 	float step;
 	int RoundEllipseCircum = int((R + r)*CV_PI);
 	if (RoundEllipseCircum > 360) RoundEllipseCircum = 360;
@@ -623,36 +659,42 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 	Node_FC *node_temp(NULL), *node_next = NULL, *node_last = NULL;
 	Point l_i;
 	cv::Point2f g_i;
-
-	vector<double> subScore(RoundEllipseCircum, 0);
-	vector<int> subIdx(RoundEllipseCircum, 0);
+	float inSw = 0, outSw = 0, inNum = 0, onNum = 0;
 	for (int i = 0; i < RoundEllipseCircum; i++)
 	{
 		angle_idx = round(i*step);
-		subIdx[i] = angle_idx;
 		if (angle_idx >= VALIDATION_NUMBER)
 		{
 			RoundEllipseCircum = i;
 			break;
 		}
 		w = sample_weight[angle_idx];
+		//w = 1;
 		sum_w += w;
 
 		x = sample_x[angle_idx], y = sample_y[angle_idx];
-		if (OutOfRange(x, y)) continue;
-
-
+		if (OutOfRange(x, y))
+		{
+			outSw += w;
+			continue;
+		}
+		inSw += w;
+		inNum += 1;
 
 		idxdxy = dIDX(x, y), idxixy = iIDX(x, y);
 
-		if (_boldData[idxixy] == 0) continue;
-
-		// get the real point on the edge map.
+		if (_boldData[idxixy] == 0)
+		{
+			E_score += w * 0.5;
+			continue;
+		}
+		onNum += 1;
+		//\BB\F1ȡ\D5\E6ʵ\B1\DFԵ\B5\E3
 		xOffset = _boldData[idxixy] / 10; yOffset = _boldData[idxixy] - 10 * xOffset;
 		xOffset = xOffset - 1; yOffset = yOffset - 2;
 		xReal = x - xOffset; yReal = y - yOffset;
 		idxdxyReal = dIDX(xReal, yReal);
-		// estimate the grad of this point.
+		// \B9\C0\BCƵ\B1ǰ\B5\E3\B5\C4\CCݶ\C8ֵ
 #if DEFINITE_ERROR_BOUNDED
 		node_center = data + idxdxyReal;
 
@@ -681,6 +723,8 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 			node_temp = node_temp->lastAddress;
 		}
 		// Grad l_i Estimation
+		if (count1 + count2 + 2 < Prasad_R / 2)
+			continue;
 		l_i = node_next->Location - node_last->Location;
 #else
 		node_temp = data + idxdxyReal;
@@ -713,49 +757,33 @@ bool FLED::fastValidation2(cv::RotatedRect &res, double *detScore)
 
 		// |g_i * l_i| / (|g_i|*|l_i|)
 		norm_li_gi = abs(l_i.x*g_i.x + l_i.y*g_i.y) / sqrt(length_l_i_2*length_g_i_2);
-		//norm_li_gi = 1;
-		if (norm_li_gi <= 0.707106781186548) // sqrt(2)/2 ~= 0.707106781186548
-			continue;
-		subScore[i] = (norm_li_gi - 0.707106781186548) / (1 - 0.707106781186548);
-		E_score += w*(norm_li_gi - 0.707106781186548) / (1 - 0.707106781186548);
+		//if (norm_li_gi <= 0.707106781186548) // sqrt(2)/2 ~= 0.707106781186548
+		//	continue;
+		//E_score += w*(norm_li_gi - 0.707106781186548) / (1 - 0.707106781186548);
+		if (norm_li_gi > 1) norm_li_gi = 1;
+		E_score += w * abs(1 - 2 / CV_PI * acos(norm_li_gi));
+
+		//E_score += w;
+
 	}
 
-	//vector<double> addScore(RoundEllipseCircum, 0);
-	//int r = int((RoundEllipseCircum - 1) / 2);
-	//for (int i = 0; i < RoundEllipseCircum; i++)
-	//{
-	//	if (subScore[i] >= 1)
-	//		continue;
-	//	for (int p = i - r; p <= i - 1; p++)
-	//	{
-	//		for (int q = i + 1; q <= i + r; q++)
-	//		{
-	//			if (p < 0)
-	//				p += RoundEllipseCircum;
-	//			if (q >= RoundEllipseCircum)
-	//				q -= RoundEllipseCircum;
-
-	//			int idx_p, idx_q;
-	//			float xp, yp, xq, yq, nxp, nyp, nxq, nyq;
-	//			
-	//			idx_p = subIdx[p], idx_q = subIdx[q];
-	//			xp = sample_x[idx_p], yp = sample_y[idx_p];
-	//			xq = sample_x[idx_q], yq = sample_y[idx_q];
-	//			nxp = grad_x[idx_p], nyp = grad_y[idx_p];
-	//			nxq = grad_x[idx_q], nyq = grad_y[idx_q];
-
-	//			
-
-	//		}
-	//	}
-	//}
-
-	E_score = E_score / sum_w*RoundEllipseCircum;
-	if (E_score > RoundEllipseCircum * _T_val)
+	if (outSw > inSw)
+		E_score = 0;
+	else
 	{
-		*detScore = E_score / RoundEllipseCircum;
+		E_score = E_score / inSw * inNum;
+	}
+	//E_score = E_score / sum_w*RoundEllipseCircum;
+
+
+	if (E_score > inNum * _T_val)
+	{
+		*detScore = E_score / inNum;
 		return true;
 	}
 	else
 		return false;
+
+
+
 }

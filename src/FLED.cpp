@@ -971,8 +971,12 @@ void FLED::calCannyThreshold(cv::Mat &ImgG, int &low, int &high)
 
 
 	//compute histogram
-	int bin_size = std::floorf(maxGrad / float(NUM_BINS) + 0.5f) + 1;
-	if (bin_size < 1) bin_size = 1;
+#if defined(__GNUC__)
+        int bin_size = std::floor(maxGrad / float(NUM_BINS) + 0.5f) + 1;
+#else
+        int bin_size = std::floorf(maxGrad / float(NUM_BINS) + 0.5f) + 1;
+#endif
+	if (bin_size < 1) bin_size  = 1;
 	for (int i = 0; i < subpixel_num; i++)
 	{
 		bins[_grad[i] / bin_size]++;

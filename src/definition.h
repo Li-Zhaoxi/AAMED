@@ -31,7 +31,7 @@
 // 自适应曲率估计算法
 #define DEFINITE_ERROR_BOUNDED 1
 // 椭圆验证加速
-#define FASTER_ELLIPSE_VALIDATION 1
+#define FASTER_ELLIPSE_VALIDATION 0
 
 // 选择椭圆聚类算法
 #define NONE_CLUSTER_METHOD   0

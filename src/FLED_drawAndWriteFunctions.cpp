@@ -110,7 +110,7 @@ void FLED::drawEdgeContours()
 
 void FLED::drawDPContours()
 {
-	char arcnum[10];
+	char arcnum[128];
 	Mat Img_T = Mat::zeros(iROWS, iCOLS, CV_8UC3) + cv::Scalar(255, 255, 255);
 	for (int i = 0; i < dpContours.size(); i++)
 	{
@@ -120,7 +120,11 @@ void FLED::drawDPContours()
 		}
 		cv::circle(Img_T, Point(dpContours[i][0].y, dpContours[i][0].x), 2, cv::Scalar(0, 0, 255));
 		Point arc_mid = dpContours[i][dpContours[i].size() / 2];
-		sprintf_s(arcnum, "%d", i);
+#if defined(__GNUC__)
+		sprintf(arcnum, "%d", i);
+#else
+                sprintf_s(arcnum, "%d", i);
+#endif
 		cv::putText(Img_T, string(arcnum), Point(arc_mid.y, arc_mid.x + 2), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
 	}
 
@@ -145,7 +149,12 @@ void FLED::drawFSA_ArcContours()
 		cv::circle(Img_T, Point(FSA_ArcContours[i][0].y, FSA_ArcContours[i][0].x), 2, cv::Scalar(0, 0, 255));
 
 		Point arc_mid = FSA_ArcContours[i][FSA_ArcContours[i].size() / 2];
-		sprintf_s(arcnum, "%d", i);
+#if defined(__GNUC__)
+		sprintf(arcnum, "%d", i);
+#else
+                sprintf_s(arcnum, "%d", i);
+#endif
+		//sprintf_s(arcnum, "%d", i);
 		cv::putText(Img_T, string(arcnum), Point(arc_mid.y, arc_mid.x + 2), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
 
 	}
@@ -192,7 +201,12 @@ void FLED::drawFLED(Mat ImgC, double ust_time)
 	if (ust_time > 0)
 	{
 		cout << ust_time << endl;
-		sprintf_s(TimeUsing, "%.2fms", ust_time);
+#if defined(__GNUC__)
+		sprintf(TimeUsing, "%.2fms", ust_time);
+#else
+                sprintf_s(TimeUsing, "%.2fms", ust_time);
+#endif
+		//sprintf_s(TimeUsing, "%.2fms", ust_time);
 		cv::putText(Img_T, string(TimeUsing), Point(50,50), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 255, 255), 2);
 	}
 	
@@ -201,7 +215,7 @@ void FLED::drawFLED(Mat ImgC, double ust_time)
 }
 void FLED::drawFLED(Mat ImgG,string savepath)
 {
-	char arcnum[10];
+	char arcnum[128];
 	Mat Img_T = ImgG.clone();
 	cvtColor(Img_T, Img_T, CV_GRAY2BGR);
 //	Mat Img_T = ImgG;
@@ -220,7 +234,12 @@ void FLED::drawFLED(Mat ImgG,string savepath)
 		temp.size.width = detEllipses[i].size.height;
 		temp.angle = -detEllipses[i].angle;
 		ellipse(Img_T, temp, cv::Scalar(0, 0, 255), 2);
-		sprintf_s(arcnum, "%.2f", detEllipseScore[i]);
+#if defined(__GNUC__)
+		sprintf(arcnum, "%.2f", detEllipseScore[i]);
+#else
+                sprintf_s(arcnum, "%.2f", detEllipseScore[i]);
+#endif
+		//sprintf_s(arcnum, "%.2f", detEllipseScore[i]);
 		cv::putText(Img_T, string(arcnum), temp.center, cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 255), 1);
 		cout << "The " << i << "th ellipse's score is :" << detEllipseScore[i] << endl;
 	}

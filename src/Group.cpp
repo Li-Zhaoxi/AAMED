@@ -403,13 +403,7 @@ void FLED::BiDirectionVerification(GPSD &fitComb, vector < cv::Vec<double, MAT_N
 		tmp_st = cv::getTickCount();
 #endif
 
-#if FASTER_ELLIPSE_VALIDATION
-		//if (fitelpres.size.width > 500)
-		//	cout << "error" << endl;
 		fitres = fastValidation(fitelpres, &detScore);
-#else
-		fitres = Validation(fitelpres, &detScore);
-#endif 
 
 #ifdef DETAIL_BREAKDOWN
 		t_allvalidation += (cv::getTickCount() - tmp_st) * 1000 / cv::getTickFrequency();

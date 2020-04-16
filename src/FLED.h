@@ -218,7 +218,6 @@ private:
 	bool FittingConstraint(double *_linkingMat, double *_linkedMat, cv::RotatedRect &fitres);
 	bool Validation(cv::RotatedRect &res, double *detScore);
 	bool fastValidation(cv::RotatedRect &res, double *detScore);
-	bool fastValidation2(cv::RotatedRect &res, double *detScore);
 	double vld_use_time;
 
 

@@ -23,8 +23,16 @@ main.cpp has given an example to detect ellipses from an image.
 
 **AAMED aamed(drows, dcols)**. drows (dcols) must be larger than the rows (cols) of all used images. Then, we can use **aamed.run_FLED(imgG);** to detect ellipses from multiple images.
 
+### 1.2 Ubuntu
 
-### 1.2 Python
+We use **CMake** to generate *Makefile*, then use make to compile our method. This way is only used for Ubuntu, not suitable for Windows.
+
+    cd AAMED/cmake-build
+    cmake ..
+    make 
+    ./AAMED
+
+### 1.3 Python
 
 **Install**
 
@@ -37,7 +45,7 @@ In setup.py, you need to config `opencv_include, opencv_lib_dirs, libraries` cor
 
     python test_aamed.py
 
-### 1.3 MATLAB
+### 1.4 MATLAB
 
 We have packaged AAMED, it can be used in MATLAB. AAMED needs OpenCV support. Note that if `mexdestoryaamed(obj) `is not called, the memory used in AAMED will remain in MATLAB all the time. Only restart matlab can clear the memory.
 
