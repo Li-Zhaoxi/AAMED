@@ -20,8 +20,7 @@ except AttributeError:
 ext_modules = [
     Extension(
         "pyAAMED",
-        ["..\\src\\AAMBasedCombinations.cpp",
-         "..\\src\\adaptApproximateContours.cpp",
+        ["..\\src\\adaptApproximateContours.cpp",
          "..\\src\\adaptApproxPolyDP.cpp",
          "..\\src\\Contours.cpp",
          "..\\src\\EllipseNonMaximumSuppression.cpp",
