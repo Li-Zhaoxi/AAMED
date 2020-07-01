@@ -398,7 +398,7 @@ void FLED::run_FLED(Mat Img_G)
 #if SELECT_CLUSTER_METHOD == OUR_CLUSTER_METHOD
 	EllipseNonMaximumSuppression(detEllipses, detEllipseScore, 0.7);
 #elif SELECT_CLUSTER_METHOD == PRASAD_CLUSTER_METHOD
-	//ClusterEllipses(detEllipses, detEllipseScore);
+	ClusterEllipses(detEllipses, detEllipseScore);
 #endif
 	asrs.clear();
 	//cout << vld_use_time << endl;

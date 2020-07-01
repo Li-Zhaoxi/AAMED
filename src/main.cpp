@@ -4,6 +4,7 @@
 int main()
 {
 	string imgPath = "002_0038.jpg";
+
 	
 	Mat imgC, imgG;
 	AAMED aamed(540, 960);
@@ -18,7 +19,7 @@ int main()
 	aamed.showDetailBreakdown(detailTime); // show detail execution time of each step
 	aamed.drawFLED(imgG, "");
 	aamed.writeDetailData();
-
+	
 
 	cv::waitKey();
 
