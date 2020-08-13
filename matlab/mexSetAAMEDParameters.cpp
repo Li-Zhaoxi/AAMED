@@ -26,6 +26,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     double theta_arc = *(double*)mxGetPr(prhs[1]);
     double lambda_arc = *(double*)mxGetPr(prhs[2]);
     double T_val = *(double*)mxGetPr(prhs[3]);
+    
     _aamed->SetParameters(theta_arc, lambda_arc, T_val); 
 
 }

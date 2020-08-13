@@ -82,7 +82,13 @@ void FLED::release()
 	lA.release();
 
 }
-
+bool FLED::checkInputImage(int rows, int cols)
+{
+    if (rows > dROWS || cols > dCOLS)
+        return false;
+    else
+        return true;
+}
 void FLED::run_AAMED_WithoutCanny(Mat Img_G)
 {
 

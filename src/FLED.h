@@ -43,12 +43,16 @@ public:
 	FLED(int drows, int dcols);
 	void SetParameters(double theta_fsa, double length_fsa, double T_val);
 	vector<cv::RotatedRect> detEllipses;
-
+	~FLED()
+	{
+		release();
+	}
 
 
 	void SetParameters(double T_dp, double theta_fsa, double length_fsa, double T_val, int grad_num);
 	void initFrame();
 	void release();// release data;
+    bool checkInputImage(int rows, int cols);
 	void run_FLED(Mat Img_G);
 	void run_AAMED_WithoutCanny(Mat Img_G);
 public:// Draw Data and Write Information Functions

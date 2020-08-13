@@ -25,17 +25,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     unsigned char * _imgmatlab = (unsigned char *)mxGetPr(prhs[1]);
     int irows = mxGetM(prhs[1]);
     int icols = mxGetN(prhs[1]);
+    if(!_aamed->checkInputImage(irows, icols))
+    {
+        mexWarnMsgTxt("The rows(cols) of the image must be large than drows(dcols)");
+        plhs[0] = mxCreateDoubleMatrix(0,5,mxREAL);
+        return;
+    }
+    
     cv::Mat imgG(irows, icols, CV_8UC1);
     unsigned char * _img = (unsigned char*)imgG.data;
+
     for(int i = 0; i < irows; i++)
     {
         for(int j = 0; j < icols; j++)
         {
-            _img[i * icols + j] = _imgmatlab[j * icols + i];
+            _img[i * icols + j] = _imgmatlab[j * irows + i];
         }
     }
+
     _aamed->run_FLED(imgG);
     int elp_num = _aamed->detEllipses.size();
+
     plhs[0] = mxCreateDoubleMatrix(elp_num,5,mxREAL);
     double *_elp = (double *)mxGetPr(plhs[0]);
     for(int i = 0; i < elp_num; i++)

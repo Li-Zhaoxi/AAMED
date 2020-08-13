@@ -16,7 +16,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     // Get the data;
     double drows = *(double *)mxGetPr(prhs[0]);
     double dcols = *(double *)mxGetPr(prhs[1]);
-    
+    if (drows <=0 || dcols <=0)
+    {
+        mexErrMsgTxt("drows or dcols must be larger than 0!!");
+    }
     AAMED *_aamed = new AAMED(std::round(drows), std::round(dcols));
     int pointer_size = sizeof(_aamed);
     

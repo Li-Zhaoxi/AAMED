@@ -6,6 +6,7 @@ We proposed a fast ellipse detection method based on arc adjacency matrix. We ha
   <img src="measuretool/aamed.jpg" width="900px" />
 </div>
 
+:blush:**The binaries for Matlab and Python can be downloaded from the latest release.**
 
 
 ## 1 Compile our Codes
