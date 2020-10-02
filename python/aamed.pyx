@@ -14,14 +14,22 @@ cdef extern from "../src/FLED.h":
 
 cdef class pyAAMED:
     cdef FLED* _fled;
+    cdef int drows;
+    cdef int dcols;
     def __cinit__(self, int drows, int dcols):
         self._fled = new FLED(drows, dcols)
+        self.drows = drows
+        self.dcols = dcols
 
     def run_AAMED(self, np.ndarray[np.uint8_t, ndim=2] imgG):
         cdef int rows = imgG.shape[0]
         cdef int cols = imgG.shape[1]
+        assert rows < self.drows and cols < self.dcols, \
+            'The size ({:d}, {:d}) of an input image must be smaller than ({:d}, {:d})'.format(rows, cols, self.drows, self.dcols)
         cdef int det_num = 0
         det_num = self._fled.run_FLED(&imgG[0, 0], rows, cols)
+        if det_num == 0:
+            return []
         cdef np.ndarray[np.float32_t, ndim=2] detEllipse = np.zeros(shape=(det_num, 6), dtype=np.float32)
         self._fled.UpdateResults(&detEllipse[0, 0])
         return detEllipse
@@ -30,7 +38,8 @@ cdef class pyAAMED:
 
 
     def release(self):
-        self._fled.release()
+        #self._fled.release()
+        del self._fled
 
     def drawAAMED(self, np.ndarray[np.uint8_t, ndim=2] imgG):
         cdef int rows = imgG.shape[0]

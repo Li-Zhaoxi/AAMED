@@ -94,7 +94,6 @@ public: // The public functions that used for Python.
 		Mat img_G = Mat(irows, icols, CV_8UC1, _img_G).clone();
 		cvtColor(img_G, img_G, cv::COLOR_GRAY2BGR);
 		drawFLED(img_G, 0);
-		cv::waitKey(0);
 	}
 	void drawAAMED(unsigned char* _img_G, int irows, int icols, cv::Vec3b *_outImg)
 	{
