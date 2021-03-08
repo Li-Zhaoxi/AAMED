@@ -22,7 +22,11 @@ You can add all .h and .cpp files into your project. Don't forget to config your
 
 main.cpp has given an example to detect ellipses from an image.
 
+
 **AAMED aamed(drows, dcols)**. drows (dcols) must be larger than the rows (cols) of all used images. Then, we can use **aamed.run_FLED(imgG);** to detect ellipses from multiple images.
+
+**Very important: Please check rows and cols of your input images are smaller than drows and dcols separately, otherwise, there will be some errors at class NODE_FC**
+
 
 ### 1.2 Ubuntu
 
