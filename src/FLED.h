@@ -189,7 +189,7 @@ private:
 			return idx_start + 1 < linked_num ? idx_start + 1 : -1;
 		}
 	};
-	GroupPart<linkArc> lA;
+	std::vector<linkArc> lA;
 	void getlinkArcs(const char *_linkMatrix, int arc_num);
 
 
