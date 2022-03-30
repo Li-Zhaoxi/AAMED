@@ -11,7 +11,7 @@ int main()
 	aamed.SetParameters(CV_PI / 3, 3.4, 0.77); // config parameters of AAMED
 
 	imgC = cv::imread(imgPath);
-	cv::cvtColor(imgC, imgG, CV_RGB2GRAY);
+	cv::cvtColor(imgC, imgG, cv::COLOR_RGB2GRAY);
 
 	aamed.run_FLED(imgG); // run AAMED
 

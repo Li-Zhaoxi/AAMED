@@ -217,7 +217,7 @@ void FLED::drawFLED(Mat ImgG,string savepath)
 {
 	char arcnum[128];
 	Mat Img_T = ImgG.clone();
-	cvtColor(Img_T, Img_T, CV_GRAY2BGR);
+	cvtColor(Img_T, Img_T, cv::COLOR_GRAY2BGR);
 //	Mat Img_T = ImgG;
 	cv::RotatedRect temp;
 	//for (int i = 0; i < FSA_Lines.size(); i++)

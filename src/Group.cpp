@@ -26,12 +26,12 @@ void FLED::PosteriorArcsSearch2(int point_idx)
 
 	while (1)
 	{
-		find_now_idx = lA[point_idx]->findNextLinking(find_now_idx);
+		find_now_idx = lA[point_idx].findNextLinking(find_now_idx);
 		if (find_now_idx == -1) //再也找不到可以组合的弧段
 		{
 			break;
 		}
-		find_arc_idx = lA[point_idx]->idx_linking[find_now_idx]; //获取弧段角标
+		find_arc_idx = lA[point_idx].idx_linking[find_now_idx]; //获取弧段角标
 		if (*visited[find_arc_idx] != 0) //访问过
 			continue;
 		if (_arc_grouped_label[find_arc_idx] != 0) //被组合过
@@ -134,7 +134,7 @@ void FLED::PosteriorArcsSearch(int point_idx)
 	int find_now_idx = -1;
 	while (1)
 	{
-		find_now_idx = lA[point_idx]->findNextLinking(find_now_idx);
+		find_now_idx = lA[point_idx].findNextLinking(find_now_idx);
 		if (find_now_idx < 0)//没有可以相连的弧段
 		{
 			search_group[0].push_back(temp); //得到一个组合
@@ -145,7 +145,7 @@ void FLED::PosteriorArcsSearch(int point_idx)
 			break;
 		}
 
-		int find_arc_idx = lA[point_idx]->idx_linking[find_now_idx];
+		int find_arc_idx = lA[point_idx].idx_linking[find_now_idx];
 		if (*visited[find_arc_idx] != 0)
 			continue;
 		if (_arc_grouped_label[find_arc_idx] != 0)
@@ -189,12 +189,12 @@ void FLED::AnteriorArcsSearch2(int point_idx)
 
 	while (1)
 	{
-		find_now_idx = lA[point_idx]->findNextLinked(find_now_idx);
+		find_now_idx = lA[point_idx].findNextLinked(find_now_idx);
 		if (find_now_idx == -1) //再也找不到可以组合的弧段
 		{
 			break;
 		}
-		find_arc_idx = lA[point_idx]->idx_linked[find_now_idx]; //获取弧段角标
+		find_arc_idx = lA[point_idx].idx_linked[find_now_idx]; //获取弧段角标
 		if (*visited[find_arc_idx] != 0) //访问过
 			continue;
 		if (_arc_grouped_label[find_arc_idx] != 0) //被组合过
@@ -301,7 +301,7 @@ void FLED::AnteriorArcsSearch(int point_idx)
 	int find_now_idx = -1;
 	while (1)
 	{
-		find_now_idx = lA[point_idx]->findNextLinked(find_now_idx);
+		find_now_idx = lA[point_idx].findNextLinked(find_now_idx);
 		if (find_now_idx < 0) //搜不到新点
 		{
 			search_group[1].push_back(temp);
@@ -312,7 +312,7 @@ void FLED::AnteriorArcsSearch(int point_idx)
 			*visited[point_idx] = 0;
 			break;
 		}
-		int find_arc_idx = lA[point_idx]->idx_linked[find_now_idx];
+		int find_arc_idx = lA[point_idx].idx_linked[find_now_idx];
 
 
 		if (*visited[find_arc_idx] != 0)

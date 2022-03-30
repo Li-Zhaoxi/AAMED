@@ -34,7 +34,7 @@ FLED::FLED(int drows, int dcols)
 	}
 
 	LinkMatrix.Update(800 * 800);
-	lA.Update(800);
+	lA.resize(800);
 
 	visited.Update(800);
 	fitComb_LR.Update(512);
@@ -79,7 +79,7 @@ void FLED::release()
 
 	LinkMatrix.release();
 	visited.release();
-	lA.release();
+//	lA.release();
 
 }
 bool FLED::checkInputImage(int rows, int cols)
@@ -613,14 +613,14 @@ void FLED::Arcs_Grouping(vector< vector<Point> > &fsaarcs)
 
 void FLED::getlinkArcs(const char *_linkMatrix, int arc_num)
 {
-	lA.Update(arc_num);
+	lA.resize(arc_num);
 	//查找第i个弧段相连的弧段和不相连的
 	for (int i = 0; i < arc_num; i++)
 	{
 		//if (i == 25)
 		//	cout << "Begin Error" << endl;
 		int idx = i*arc_num;
-		lA[i]->clear();
+		lA[i].clear();
 		for (int j = 0; j < arc_num; j++)
 		{
 			//if (i == 32)
@@ -628,11 +628,11 @@ void FLED::getlinkArcs(const char *_linkMatrix, int arc_num)
 			//if (i == 25 && j == 32)
 			//	cout << int(_linkMatrix[idx + j]) << endl;
 			if (_linkMatrix[idx + j] == 1) // i 与j相连，则连接
-				lA[i]->idx_linking.push_back(j);
+				lA[i].idx_linking.push_back(j);
 			else if (_linkMatrix[idx + j] == -1) //i与j不连，则不连
-				lA[i]->idx_notlink.push_back(j);
+				lA[i].idx_notlink.push_back(j);
 			if (_linkMatrix[j*arc_num + i] == 1)
-				lA[i]->idx_linked.push_back(j);
+				lA[i].idx_linked.push_back(j);
 		}
 	}
 }
