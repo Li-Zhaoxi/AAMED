@@ -1,4 +1,4 @@
-/python/aamed.cpp
+/python/*.cpp
 /python/*.pyd
 /python/*.so
 /python/build
