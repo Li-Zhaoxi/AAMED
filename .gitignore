@@ -6,3 +6,5 @@
 /measuretool/*.mat
 
 *.mexw64
+
+.vscode
