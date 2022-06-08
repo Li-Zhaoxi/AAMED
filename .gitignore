@@ -1,5 +1,6 @@
 /python/aamed.cpp
 /python/*.pyd
+/python/*.so
 /python/build
 /labeltool/*.mexw64
 /measuretool/MeasureTools/*.mexw64
