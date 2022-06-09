@@ -1,8 +1,11 @@
-/python/aamed.cpp
+/python/*.cpp
 /python/*.pyd
+/python/*.so
 /python/build
 /labeltool/*.mexw64
 /measuretool/MeasureTools/*.mexw64
 /measuretool/*.mat
 
 *.mexw64
+
+.vscode

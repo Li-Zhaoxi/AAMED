@@ -39,16 +39,41 @@ We use **CMake** to generate *Makefile*, then use make to compile our method. Th
 
 ### 1.3 Python
 
-**Install**
+For Python, the OpenCV and NumPy packages are required.
 
-In setup.py, you need to config `opencv_include, opencv_lib_dirs, libraries` correctly about OpenCV. Then, 
+**Building**
 
-	cd python
-    python setup.py build_ext --inplace
+With the Anaconda distribution of Python (Windows and Linux) and the standard 
+Python in Linux, building the library can be done in the following way:
+```
+cd python
+python setup.py build_ext --inplace
+```
+Once built, the created library (Windows: `.pyd`, Linux: `.so`) can be placed 
+anywhere. 
 
-**Test**
+If you are building on Windows without Anaconda, you must install OpenCV 
+manually alongside the OpenCV Python package. (Make sure the versions are the 
+same!) Then, in the `setup.py` file, the `opencv_root` variable should be set 
+to the specified OpenCV installation location. Once this is done, you can 
+continue to use the same commands above to build. 
 
-    python test_aamed.py
+Note: for Windows without Anaconda, the `opencv_world` DLL should be 
+together with the `.pyd` as well. Alternatively, if you do not want to copy 
+the `opencv_world` DLL around, you can add the OpenCV bin location as a DLL 
+directory at the beginning of your script. For example:
+```py
+import os
+os.add_dll_directory("D:/opencv/build/x64/vc14/bin")
+```
+
+**Testing**
+
+To quickly test, `test_aamed.py` is provided.
+```
+python test_aamed.py
+```
+
 
 ### 1.4 MATLAB
 
