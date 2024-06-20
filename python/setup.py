@@ -111,7 +111,7 @@ ext_modules = [
             numpy_include,
             "FLED"
         ],
-        language = "C++",
+        language = "c++",
         extra_compile_args = extra_compile_args,
         libraries = libraries,
         library_dirs = [str(opencv_lib_dirs)]
